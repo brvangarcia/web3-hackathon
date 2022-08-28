@@ -1,5 +1,5 @@
 import Header from "../components/Header";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { uploadFileToIPFS, uploadJSONToIPFS } from "../utils/pinata";
 import { ethers } from "ethers";
@@ -32,12 +32,12 @@ export default function UploadVideo() {
   };
 
   const uploadMetadataToIPFS = async () => {
-    if (!title || !description || !price || !fileURL) return;
+    if (!title || !description || !fileURL) return;
 
     const nftJSON = {
       name: title,
       description,
-      price,
+      price: 0.01,
       image: fileURL,
     };
     console.log(nftJSON);
@@ -66,11 +66,11 @@ export default function UploadVideo() {
       let contract = new ethers.Contract(DVideos.address, DVideos.abi, signer);
       // console.log(price);
       const price = ethers.utils.parseUnits("0.1", "ether");
-      let listingPrice = await contract.getListPrice();
-      listingPrice = listingPrice.toString();
+      // let listingPrice = await contract.getListPrice();
+      // listingPrice = listingPrice.toString();
 
       let transaction = await contract.createToken(metadataURL, price, {
-        value: listingPrice,
+        value: price,
       });
       await transaction.wait();
 
@@ -150,7 +150,7 @@ export default function UploadVideo() {
             </div>
           </div>
 
-          <div>
+          {/* <div>
             <label
               htmlFor="project-name"
               className="block text-sm font-medium text-gray-700"
@@ -168,7 +168,7 @@ export default function UploadVideo() {
                 onChange={(e) => setPrice(e.target.value)}
               />
             </div>
-          </div>
+          </div> */}
 
           <div>
             <label

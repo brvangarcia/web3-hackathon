@@ -15,7 +15,7 @@ interface IDVideos {
 
 contract DVDao is ERC20, Ownable {
     struct Proposal {
-        address Candidate;
+        address candidate;
         // deadline - the UNIX timestamp until which this proposal is active. Proposal can be executed after the deadline has been exceeded.
         uint256 deadline;
         // yayVotes - number of yay votes for this proposal
@@ -45,13 +45,13 @@ contract DVDao is ERC20, Ownable {
         _;
     }
 
-    function createProposal(address _Candidate)
+    function createProposal(address _candidate)
         external
         nftHolderOnly
         returns (uint256)
     {
         Proposal storage proposal = proposals[numProposals];
-        proposal.Candidate = _Candidate;
+        proposal.candidate = _candidate;
 
         proposal.deadline = block.timestamp + 1 days;
 
@@ -110,7 +110,7 @@ contract DVDao is ERC20, Ownable {
         Proposal storage proposal = proposals[proposalIndex];
 
         if (proposal.upVotes > proposal.downVotes) {
-            ERC20(address(this)).transfer(address(proposal.Candidate), 500);
+            ERC20(address(this)).transfer(address(proposal.candidate), 500);
         }
         proposal.executed = true;
     }

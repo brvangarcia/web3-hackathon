@@ -14,7 +14,7 @@ export default function Header() {
   const [address, setAddress] = useState();
 
   const connect = async () => {
-    await window.ethereum.enable()
+    await window.ethereum.enable();
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const accounts = await provider.listAccounts();
     setAddress(accounts[0]);
@@ -27,38 +27,29 @@ export default function Header() {
           className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0"
           href="/"
         >
-           dVideos
+          dVideos
         </Link>
-        <nav className="md:ml-auto md:mr-auto flex flex-wrap items-center text-base justify-center">
-        
-          <Link href="/uploadVideo">Upload video</Link>
-        {" "}
+        <nav className="md:ml-auto flex flex-wrap items-center text-base justify-center">
+          <div className="px-5">
+          <Link href="/uploadVideo">  Upload video</Link>
+          </div>
+         
           <Link href="/weeklyCreators">Weekly creator</Link>
         </nav>
-        {/* {address ? (
-          <div>
-            {address.slice(0, 6)}...{address.slice(12, 16)}
-            
-          </div>
-        ) : (
-          <button
-            className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base mt-4 md:mt-0"
-            onClick={() => connect()}
+        {/* <button className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base mt-4 md:mt-0">
+          Button
+          <svg
+            fill="none"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            className="w-4 h-4 ml-1"
+            viewBox="0 0 24 24"
           >
-            Connect wallet
-            <svg
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="w-4 h-4 ml-1"
-              viewBox="0 0 24 24"
-            >
-              <path d="M5 12h14M12 5l7 7-7 7"></path>
-            </svg>
-          </button>
-        )} */}
+            <path d="M5 12h14M12 5l7 7-7 7"></path>
+          </svg>
+        </button> */}
       </div>
     </header>
   );

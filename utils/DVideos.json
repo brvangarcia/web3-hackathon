@@ -1,5 +1,5 @@
 {
-    "address": "0x30d686bFFf390D46dd7C1302bfCcB8575c4b77D2",
+    "address": "0x3C26eD1730664707C942de660Ba46bB4025a014f",
     "abi": [
         {
           "inputs": [],
@@ -69,12 +69,6 @@
               "indexed": false,
               "internalType": "address",
               "name": "owner",
-              "type": "address"
-            },
-            {
-              "indexed": false,
-              "internalType": "address",
-              "name": "seller",
               "type": "address"
             },
             {
@@ -180,19 +174,6 @@
           "type": "function"
         },
         {
-          "inputs": [
-            {
-              "internalType": "uint256",
-              "name": "tokenId",
-              "type": "uint256"
-            }
-          ],
-          "name": "executeSale",
-          "outputs": [],
-          "stateMutability": "payable",
-          "type": "function"
-        },
-        {
           "inputs": [],
           "name": "getAllNFTs",
           "outputs": [
@@ -206,11 +187,6 @@
                 {
                   "internalType": "address payable",
                   "name": "owner",
-                  "type": "address"
-                },
-                {
-                  "internalType": "address payable",
-                  "name": "seller",
                   "type": "address"
                 },
                 {
@@ -252,152 +228,34 @@
           "type": "function"
         },
         {
-          "inputs": [],
-          "name": "getCurrentToken",
-          "outputs": [
-            {
-              "internalType": "uint256",
-              "name": "",
-              "type": "uint256"
-            }
-          ],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
-          "inputs": [],
-          "name": "getLatestIdToListedToken",
-          "outputs": [
-            {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "tokenId",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "address payable",
-                  "name": "owner",
-                  "type": "address"
-                },
-                {
-                  "internalType": "address payable",
-                  "name": "seller",
-                  "type": "address"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "price",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "bool",
-                  "name": "currentlyListed",
-                  "type": "bool"
-                }
-              ],
-              "internalType": "struct DVideos.ListedToken",
-              "name": "",
-              "type": "tuple"
-            }
-          ],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
-          "inputs": [],
-          "name": "getListPrice",
-          "outputs": [
-            {
-              "internalType": "uint256",
-              "name": "",
-              "type": "uint256"
-            }
-          ],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
           "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "name": "idToListedToken",
+          "outputs": [
             {
               "internalType": "uint256",
               "name": "tokenId",
               "type": "uint256"
-            }
-          ],
-          "name": "getListedTokenForId",
-          "outputs": [
+            },
             {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "tokenId",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "address payable",
-                  "name": "owner",
-                  "type": "address"
-                },
-                {
-                  "internalType": "address payable",
-                  "name": "seller",
-                  "type": "address"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "price",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "bool",
-                  "name": "currentlyListed",
-                  "type": "bool"
-                }
-              ],
-              "internalType": "struct DVideos.ListedToken",
-              "name": "",
-              "type": "tuple"
-            }
-          ],
-          "stateMutability": "view",
-          "type": "function"
-        },
-        {
-          "inputs": [],
-          "name": "getMyNFTs",
-          "outputs": [
+              "internalType": "address payable",
+              "name": "owner",
+              "type": "address"
+            },
             {
-              "components": [
-                {
-                  "internalType": "uint256",
-                  "name": "tokenId",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "address payable",
-                  "name": "owner",
-                  "type": "address"
-                },
-                {
-                  "internalType": "address payable",
-                  "name": "seller",
-                  "type": "address"
-                },
-                {
-                  "internalType": "uint256",
-                  "name": "price",
-                  "type": "uint256"
-                },
-                {
-                  "internalType": "bool",
-                  "name": "currentlyListed",
-                  "type": "bool"
-                }
-              ],
-              "internalType": "struct DVideos.ListedToken[]",
-              "name": "",
-              "type": "tuple[]"
+              "internalType": "uint256",
+              "name": "price",
+              "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "currentlyListed",
+              "type": "bool"
             }
           ],
           "stateMutability": "view",
@@ -600,19 +458,6 @@
           "name": "transferFrom",
           "outputs": [],
           "stateMutability": "nonpayable",
-          "type": "function"
-        },
-        {
-          "inputs": [
-            {
-              "internalType": "uint256",
-              "name": "_listPrice",
-              "type": "uint256"
-            }
-          ],
-          "name": "updateListPrice",
-          "outputs": [],
-          "stateMutability": "payable",
           "type": "function"
         }
       ]

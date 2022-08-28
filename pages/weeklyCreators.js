@@ -1,10 +1,11 @@
 import React, { useEffect, useState, Fragment, useRef } from "react";
 import DVDao from "../utils/DVDao.json";
+import DVideos from "../utils/DVideos.json";
 import { ethers } from "ethers";
-import { Dialog, Transition } from '@headlessui/react'
+import { Dialog, Transition } from "@headlessui/react";
+import Header from "../components/Header";
 
 export default function WeeklyCreators() {
-    const [signer, setSigner] = useState();
   // ETH Balance of the DAO contract
   const [treasuryBalance, setTreasuryBalance] = useState("0");
   // Number of proposals created in the DAO
@@ -13,27 +14,27 @@ export default function WeeklyCreators() {
   const [proposals, setProposals] = useState([]);
   // User's balance of CryptoDevs NFTs
   const [nftBalance, setNftBalance] = useState(0);
-  // Fake NFT Token ID to purchase. Used when creating a proposal.
-  const [fakeNftTokenId, setFakeNftTokenId] = useState("");
-  // One of "Create Proposal" or "View Proposals"
-  const [selectedTab, setSelectedTab] = useState("");
+
+  const [proposalAddress, setProposalAddress] = useState();
+
   // True if waiting for a transaction to be mined, false otherwise.
   const [loading, setLoading] = useState(false);
   // True if user has connected their wallet, false otherwise
   const [walletConnected, setWalletConnected] = useState(false);
 
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
 
-  const cancelButtonRef = useRef(null)
+  const cancelButtonRef = useRef(null);
 
   // Reads the ETH balance of the DAO contract and sets the `treasuryBalance` state variable
   const getDAOTreasuryBalance = async () => {
     try {
-      const provider = await getProviderOrSigner();
-      const balance = await provider.getBalance(
-        CRYPTODEVS_DAO_CONTRACT_ADDRESS
-      );
-      setTreasuryBalance(balance.toString());
+      const signer = await loadWallet();
+      let contract = new ethers.Contract(DVDao.address, DVDao.abi, signer);
+
+      let DAOTreasury = await contract.balanceOf(DVDao.address);
+
+      setTreasuryBalance(DAOTreasury.toString());
     } catch (error) {
       console.error(error);
     }
@@ -42,10 +43,12 @@ export default function WeeklyCreators() {
   // Reads the number of proposals in the DAO contract and sets the `numProposals` state variable
   const getNumProposalsInDAO = async () => {
     try {
-      const provider = await getProviderOrSigner();
-      const contract = getDaoContractInstance(provider);
-      const daoNumProposals = await contract.numProposals();
-      setNumProposals(daoNumProposals.toString());
+      const signer = await loadWallet();
+      let contract = new ethers.Contract(DVDao.address, DVDao.abi, signer);
+
+      let numberOfProposals = await contract.numProposals();
+      setNumProposals(Number(numberOfProposals));
+      return Number(numberOfProposals);
     } catch (error) {
       console.error(error);
     }
@@ -54,9 +57,9 @@ export default function WeeklyCreators() {
   // Reads the balance of the user's CryptoDevs NFTs and sets the `nftBalance` state variable
   const getUserNFTBalance = async () => {
     try {
-      
-      const nftContract = getCryptodevsNFTContractInstance(signer);
-      const balance = await nftContract.balanceOf(signer.getAddress());
+      const signer = await loadWallet();
+      let contract = new ethers.Contract(DVideos.address, DVideos.abi, signer);
+      const balance = await contract.balanceOf(signer.getAddress());
       setNftBalance(parseInt(balance.toString()));
     } catch (error) {
       console.error(error);
@@ -66,32 +69,53 @@ export default function WeeklyCreators() {
   // Calls the `createProposal` function in the contract, using the tokenId from `fakeNftTokenId`
   const createProposal = async () => {
     try {
-      const signer = await getProviderOrSigner(true);
-      const daoContract = getDaoContractInstance(signer);
-      const txn = await daoContract.createProposal(fakeNftTokenId);
+      const signer = await loadWallet();
+      let contract = new ethers.Contract(DVDao.address, DVDao.abi, signer);
+      const txn = await contract.createProposal(proposalAddress);
       setLoading(true);
       await txn.wait();
       await getNumProposalsInDAO();
       setLoading(false);
     } catch (error) {
       console.error(error);
-      window.alert(error.data.message);
     }
   };
 
+  const fetchProposalById = async (id) => {
+    try {
+      const signer = await loadWallet();
+      let contract = new ethers.Contract(DVDao.address, DVDao.abi, signer);
+      const proposal = await contract.proposals(id);
 
+      const parsedProposal = {
+        proposalId: id,
+        candidate: proposal.candidate.toString(),
+        deadline: new Date(parseInt(proposal.deadline.toString()) * 1000),
+        upVotes: proposal.upVotes.toString(),
+        downVotes: proposal.downVotes.toString(),
+        executed: proposal.executed,
+      };
+      return parsedProposal;
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   // Runs a loop `numProposals` times to fetch all proposals in the DAO
   // and sets the `proposals` state variable
   const fetchAllProposals = async () => {
     try {
+      const numberOfProposals = await getNumProposalsInDAO();
+      console.log(numberOfProposals);
       const proposals = [];
-      for (let i = 0; i < numProposals; i++) {
+      for (let i = 0; i < numberOfProposals; ) {
         const proposal = await fetchProposalById(i);
+        console.log(proposal);
         proposals.push(proposal);
+        i++;
       }
+
       setProposals(proposals);
-      return proposals;
     } catch (error) {
       console.error(error);
     }
@@ -99,20 +123,19 @@ export default function WeeklyCreators() {
 
   // Calls the `voteOnProposal` function in the contract, using the passed
   // proposal ID and Vote
-  const voteOnProposal = async (proposalId, _vote) => {
+  const voteOnProposal = async (proposalId, vote) => {
     try {
-      const signer = await getProviderOrSigner(true);
-      const daoContract = getDaoContractInstance(signer);
+      const signer = await loadWallet();
+      let contract = new ethers.Contract(DVDao.address, DVDao.abi, signer);
 
-      let vote = _vote === "UP" ? 0 : 1;
-      const txn = await daoContract.voteOnProposal(proposalId, vote);
+      const txn = await contract.voteOnProposal(proposalId, vote);
       setLoading(true);
       await txn.wait();
       setLoading(false);
       await fetchAllProposals();
+      setOpen(false);
     } catch (error) {
       console.error(error);
-      window.alert(error.data.message);
     }
   };
 
@@ -120,100 +143,118 @@ export default function WeeklyCreators() {
   // the passed proposal ID
   const executeProposal = async (proposalId) => {
     try {
-      const signer = await getProviderOrSigner(true);
-      const daoContract = getDaoContractInstance(signer);
-      const txn = await daoContract.executeProposal(proposalId);
+      const signer = await loadWallet();
+      let contract = new ethers.Contract(DVDao.address, DVDao.abi, signer);
+      const txn = await contract.executeProposal(proposalId);
       setLoading(true);
       await txn.wait();
       setLoading(false);
       await fetchAllProposals();
     } catch (error) {
       console.error(error);
-      window.alert(error.data.message);
     }
   };
-
-
-
-
- 
 
   const loadWallet = async () => {
     await window.ethereum.enable();
     //After adding your Hardhat network to your metamask, this code will get providers and signers
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const signer = provider.getSigner();
-    setSigner(signer);
+    return signer;
   };
 
   useEffect(() => {
     loadWallet();
+    fetchAllProposals();
+    getDAOTreasuryBalance();
+    getUserNFTBalance();
   }, []);
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <Transition.Root show={open} as={Fragment}>
-      <Dialog as="div" className="relative z-10" initialFocus={cancelButtonRef} onClose={setOpen}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+      <Header />
+      <Transition.Root show={open} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-10"
+          initialFocus={cancelButtonRef}
+          onClose={setOpen}
         >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-        </Transition.Child>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+          </Transition.Child>
 
-        <div className="fixed z-10 inset-0 overflow-y-auto">
-          <div className="flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            >
-              <Dialog.Panel className="relative bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full sm:p-6">
-                <div>
-                  
-                  <div className="mt-3 text-center sm:mt-5">
-                    <Dialog.Title as="h3" className="text-lg leading-6 font-medium text-gray-900">
-                      Payment successful
-                    </Dialog.Title>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500">
-                        Lorem ipsum, dolor sit amet consectetur adipisicing elit. Eius aliquam laudantium explicabo
-                        pariatur iste dolorem animi vitae error totam. At sapiente aliquam accusamus facere veritatis.
-                      </p>
+          <div className="fixed z-10 inset-0 overflow-y-auto">
+            <div className="flex items-end sm:items-center justify-center min-h-full p-4 text-center sm:p-0">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                enterTo="opacity-100 translate-y-0 sm:scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+                leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              >
+                <Dialog.Panel className="relative bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full sm:p-6">
+                  <div>
+                    <div className="mt-3 text-center sm:mt-5">
+                      <Dialog.Title
+                        as="h3"
+                        className="text-lg leading-6 font-medium text-gray-900"
+                      >
+                        Submit a proposal
+                      </Dialog.Title>
+                      <div>
+                        <label
+                          htmlFor="address"
+                          className="block text-sm font-medium text-gray-700"
+                        >
+                          Creator address
+                        </label>
+                        <div className="mt-1 rounded-md shadow-sm flex">
+                          <input
+                            type="text"
+                            name="address"
+                            id="address"
+                            autoComplete="address"
+                            className="focus:ring-sky-500 focus:border-sky-500 flex-grow block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
+                            value={proposalAddress}
+                            onChange={(e) => setProposalAddress(e.target.value)}
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
-                  <button
-                    type="button"
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:col-start-2 sm:text-sm"
-                    onClick={() => setOpen(false)}
-                  >
-                    Deactivate
-                  </button>
-                  <button
-                    type="button"
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
-                    onClick={() => setOpen(false)}
-                    ref={cancelButtonRef}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
+                  <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                    <button
+                      type="button"
+                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:col-start-2 sm:text-sm"
+                      onClick={() => createProposal()}
+                    >
+                      Submit proposal
+                    </button>
+                    <button
+                      type="button"
+                      className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                      onClick={() => setOpen(false)}
+                      ref={cancelButtonRef}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
           </div>
-        </div>
-      </Dialog>
-    </Transition.Root>
+        </Dialog>
+      </Transition.Root>
       <div className="px-4 sm:px-6 lg:px-8">
         <div>
           <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
@@ -225,16 +266,38 @@ export default function WeeklyCreators() {
                 {numProposals}
               </dd>
             </div>
+            <div className="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+              <dt className="text-sm font-medium text-gray-500 truncate">
+                Treasury balance
+              </dt>
+              <dd className="mt-1 text-3xl tracking-tight font-semibold text-gray-900">
+                {treasuryBalance}
+              </dd>
+            </div>
+            <div className="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
+              <dt className="text-sm font-medium text-gray-500 truncate">
+                NFT I hold
+              </dt>
+              <dd className="mt-1 text-3xl tracking-tight font-semibold text-gray-900">
+                {nftBalance}
+              </dd>
+            </div>
           </dl>
         </div>
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
             <h1 className="text-xl font-semibold text-gray-900">Proposals</h1>
             <p className="mt-2 text-sm text-gray-700">
-              A list of all the users in your account including their name,
-              title, email and role.
+              A list of all the proposals in the DAO.
             </p>
           </div>
+          <button
+            type="button"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            onClick={() => setOpen(true)}
+          >
+            Submit a proposal
+          </button>
         </div>
         <div className="mt-8 flex flex-col">
           <div className="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -265,41 +328,65 @@ export default function WeeklyCreators() {
                         scope="col"
                         className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
-                        Is active
+                        Active till
                       </th>
                       <th
                         scope="col"
-                        className="relative py-3.5 pl-3 pr-4 sm:pr-6"
+                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
-                        <span className="sr-only">Edit</span>
+                        Execute
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {/* {people.map((person) => (
-                    <tr key={person.email}>
-                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                        {person.name}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {person.title}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {person.email}
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {person.role}
-                      </td>
-                      <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                        <a
-                          href="#"
-                          className="text-indigo-600 hover:text-indigo-900"
-                        >
-                          Edit<span className="sr-only">, {person.name}</span>
-                        </a>
-                      </td>
-                    </tr>
-                  ))} */}
+                    {proposals &&
+                      proposals.map((proposal) => (
+                        <tr key={proposal.proposalId}>
+                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                            {proposal.candidate}
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            {proposal.upVotes}
+                            <button
+                              type="button"
+                              className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              onClick={() =>
+                                voteOnProposal(proposal.proposalId, 0)
+                              }
+                            >
+                              👍
+                            </button>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            {proposal.downVotes}
+                            <button
+                              type="button"
+                              className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              onClick={() =>
+                                voteOnProposal(proposal.proposalId, 1)
+                              }
+                            >
+                              👎
+                            </button>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            {proposal.deadline.toString()}
+                          </td>
+                          <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                            {proposal.deadline.toString() > new Date().toString() && (
+                              <button
+                              type="button"
+                              className="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                              onClick={() =>
+                                executeProposal(proposal.proposalId)
+                              }
+                            >
+                              Execute
+                            </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
