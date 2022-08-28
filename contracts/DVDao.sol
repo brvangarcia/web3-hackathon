@@ -16,21 +16,20 @@ interface IDVideos {
 contract DVDao is ERC20, Ownable {
     struct Proposal {
         address candidate;
-        // deadline - the UNIX timestamp until which this proposal is active. Proposal can be executed after the deadline has been exceeded.
         uint256 deadline;
-        // yayVotes - number of yay votes for this proposal
         uint256 upVotes;
-        // nayVotes - number of nay votes for this proposal
         uint256 downVotes;
-        // executed - whether or not this proposal has been executed yet. Cannot be executed before the deadline has been exceeded.
         bool executed;
-        // voters - a mapping of CryptoDevsNFT tokenIDs to booleans indicating whether that NFT has already been used to cast a vote or not
         mapping(address => bool) voters;
     }
 
-    // Create a mapping of ID to Proposal
+    enum Vote {
+        UP,
+        DOWN
+    }
+
     mapping(uint256 => Proposal) public proposals;
-    // Number of proposals that have been created
+
     uint256 public numProposals;
 
     IDVideos dVideosNFT;
@@ -41,7 +40,7 @@ contract DVDao is ERC20, Ownable {
     }
 
     modifier nftHolderOnly() {
-        require(dVideosNFT.balanceOf(msg.sender) > 0, "NOT_A_DAO_MEMBER");
+        require(dVideosNFT.balanceOf(msg.sender) > 0, "NOT A HOLDER");
         _;
     }
 
@@ -63,14 +62,9 @@ contract DVDao is ERC20, Ownable {
     modifier activeProposalOnly(uint256 proposalIndex) {
         require(
             proposals[proposalIndex].deadline > block.timestamp,
-            "DEADLINE_EXCEEDED"
+            "TIME PASSED"
         );
         _;
-    }
-
-    enum Vote {
-        UP, // YAY = 0
-        DOWN // NAY = 1
     }
 
     function voteOnProposal(uint256 proposalIndex, Vote vote)
@@ -79,9 +73,6 @@ contract DVDao is ERC20, Ownable {
         activeProposalOnly(proposalIndex)
     {
         Proposal storage proposal = proposals[proposalIndex];
-
-        uint256 voterNFTBalance = dVideosNFT.balanceOf(msg.sender);
-        uint256 numVotes = 0;
 
         if (vote == Vote.UP) {
             proposal.upVotes = proposal.upVotes + 1;
@@ -93,11 +84,11 @@ contract DVDao is ERC20, Ownable {
     modifier inactiveProposalOnly(uint256 proposalIndex) {
         require(
             proposals[proposalIndex].deadline <= block.timestamp,
-            "DEADLINE_NOT_EXCEEDED"
+            "YOU ARE TO EARLY"
         );
         require(
             proposals[proposalIndex].executed == false,
-            "PROPOSAL_ALREADY_EXECUTED"
+            "PROPOSAL EXECUTED"
         );
         _;
     }

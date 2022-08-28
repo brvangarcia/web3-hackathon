@@ -21,23 +21,42 @@ export default function Home() {
 
       const items = await Promise.all(
         transaction.map(async (i) => {
-          const tokenURI = await contract.tokenURI(i.tokenId);
-          let { data } = await axios.get(tokenURI);
+          if (i[1] !== "0x0000000000000000000000000000000000000000") {
+            const tokenURI = await contract.tokenURI(i.tokenId);
+            let { data } = await axios.get(tokenURI);
 
-          let price = ethers.utils.formatUnits(i.price.toString(), "ether");
-          let item = {
-            price,
-            tokenId: i.tokenId.toNumber(),
-            owner: i.owner,
-            image: data.image,
-            name: data.name,
-            description: data.description,
-          };
-          return item;
+            let price = ethers.utils.formatUnits(i.price.toString(), "ether");
+            let item = {
+              price,
+              tokenId: i.tokenId.toNumber(),
+              owner: i.owner,
+              image: data.image,
+              name: data.name,
+              description: data.description,
+            };
+            return item;
+          } else {
+            let item = {
+              price: 0,
+              tokenId: null,
+              owner: "Private ",
+              image:
+                "https://i.vimeocdn.com/video/868696733-27a5f47681ef9202a78bcfba6b761056b8bf4947665958f7f7e9d50b861e933c-d?mw=2200&mh=1238&q=70",
+              name: "Private",
+              description: "private",
+            };
+            return item;
+          }
         })
       );
 
       setCurrentVideo(items[0]);
+      items
+        .filter(function (val) {
+          return val !== null;
+        })
+        .join(", ");
+
       setVideos(items);
     } catch (error) {
       console.log(error);
@@ -93,11 +112,8 @@ export default function Home() {
                     </div>
                   </div>
                 )}
-               
               </div>
             </section>
-
-         
           </div>
 
           <section
@@ -131,12 +147,13 @@ export default function Home() {
                                 <p className="text-sm text-gray-500">
                                   {item.description}
                                 </p>
+                                <ReactPlayer
+                                  url={item.image}
+                                  fallback={() => <p>Loading video...</p>}
+                                  height="100"
+                                  width="180"
+                                />
                               </div>
-                              <video
-                                source={item.image}
-                                height="100"
-                                width="180"
-                              />
                             </div>
                           </div>
                         </div>

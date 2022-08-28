@@ -1,5 +1,5 @@
 {
-    "address": "0x3C26eD1730664707C942de660Ba46bB4025a014f",
+    "address": "0x14839E6e013d29B9102b8FDACB395Ea770Be4320",
     "abi": [
         {
           "inputs": [],
@@ -134,6 +134,25 @@
           "inputs": [
             {
               "internalType": "address",
+              "name": "",
+              "type": "address"
+            }
+          ],
+          "name": "balance",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "address",
               "name": "owner",
               "type": "address"
             }
@@ -152,6 +171,25 @@
         {
           "inputs": [
             {
+              "internalType": "uint256",
+              "name": "price",
+              "type": "uint256"
+            }
+          ],
+          "name": "createSuscription",
+          "outputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
               "internalType": "string",
               "name": "tokenURI",
               "type": "string"
@@ -160,6 +198,11 @@
               "internalType": "uint256",
               "name": "price",
               "type": "uint256"
+            },
+            {
+              "internalType": "bool",
+              "name": "isForSuscriberOnly",
+              "type": "bool"
             }
           ],
           "name": "createToken",
@@ -198,6 +241,11 @@
                   "internalType": "bool",
                   "name": "currentlyListed",
                   "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "isForSuscriberOnly",
+                  "type": "bool"
                 }
               ],
               "internalType": "struct DVideos.ListedToken[]",
@@ -231,6 +279,52 @@
           "inputs": [
             {
               "internalType": "uint256",
+              "name": "_id",
+              "type": "uint256"
+            }
+          ],
+          "name": "getNFTFromCreator",
+          "outputs": [
+            {
+              "components": [
+                {
+                  "internalType": "uint256",
+                  "name": "tokenId",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "address payable",
+                  "name": "owner",
+                  "type": "address"
+                },
+                {
+                  "internalType": "uint256",
+                  "name": "price",
+                  "type": "uint256"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "currentlyListed",
+                  "type": "bool"
+                },
+                {
+                  "internalType": "bool",
+                  "name": "isForSuscriberOnly",
+                  "type": "bool"
+                }
+              ],
+              "internalType": "struct DVideos.ListedToken[]",
+              "name": "",
+              "type": "tuple[]"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
               "name": "",
               "type": "uint256"
             }
@@ -255,6 +349,11 @@
             {
               "internalType": "bool",
               "name": "currentlyListed",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "isForSuscriberOnly",
               "type": "bool"
             }
           ],
@@ -400,6 +499,49 @@
               "internalType": "bool",
               "name": "",
               "type": "bool"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "_id",
+              "type": "uint256"
+            }
+          ],
+          "name": "suscribeTo",
+          "outputs": [
+            {
+              "internalType": "bool",
+              "name": "",
+              "type": "bool"
+            }
+          ],
+          "stateMutability": "payable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {
+              "internalType": "uint256",
+              "name": "",
+              "type": "uint256"
+            }
+          ],
+          "name": "suscriptions",
+          "outputs": [
+            {
+              "internalType": "address",
+              "name": "creator",
+              "type": "address"
+            },
+            {
+              "internalType": "uint256",
+              "name": "price",
+              "type": "uint256"
             }
           ],
           "stateMutability": "view",

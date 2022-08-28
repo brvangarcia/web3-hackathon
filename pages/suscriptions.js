@@ -5,16 +5,12 @@ import { ethers } from "ethers";
 import { Dialog, Transition } from "@headlessui/react";
 import Header from "../components/Header";
 
-export default function WeeklyCreators() {
-  const [treasuryBalance, setTreasuryBalance] = useState("0");
+export default function Suscriptions() {
 
-  const [numProposals, setNumProposals] = useState("0");
+  const [suscriptions, setSuscriptions] = useState([]);
 
-  const [proposals, setProposals] = useState([]);
 
-  const [nftBalance, setNftBalance] = useState(0);
-
-  const [proposalAddress, setProposalAddress] = useState();
+  const [cost, setCost] = useState();
 
   const [loading, setLoading] = useState(false);
 
@@ -22,44 +18,9 @@ export default function WeeklyCreators() {
 
   const cancelButtonRef = useRef(null);
 
-  const getDAOTreasuryBalance = async () => {
-    try {
-      const signer = await loadWallet();
-      let contract = new ethers.Contract(DVDao.address, DVDao.abi, signer);
+  
 
-      let DAOTreasury = await contract.balanceOf(DVDao.address);
-
-      setTreasuryBalance(DAOTreasury.toString());
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const getNumProposalsInDAO = async () => {
-    try {
-      const signer = await loadWallet();
-      let contract = new ethers.Contract(DVDao.address, DVDao.abi, signer);
-
-      let numberOfProposals = await contract.numProposals();
-      setNumProposals(Number(numberOfProposals));
-      return Number(numberOfProposals);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const getUserNFTBalance = async () => {
-    try {
-      const signer = await loadWallet();
-      let contract = new ethers.Contract(DVideos.address, DVideos.abi, signer);
-      const balance = await contract.balanceOf(signer.getAddress());
-      setNftBalance(parseInt(balance.toString()));
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const createProposal = async () => {
+  const createASuscription = async () => {
     try {
       const signer = await loadWallet();
       let contract = new ethers.Contract(DVDao.address, DVDao.abi, signer);
@@ -111,21 +72,7 @@ export default function WeeklyCreators() {
     }
   };
 
-  const voteOnProposal = async (proposalId, vote) => {
-    try {
-      const signer = await loadWallet();
-      let contract = new ethers.Contract(DVDao.address, DVDao.abi, signer);
-
-      const txn = await contract.voteOnProposal(proposalId, vote);
-      setLoading(true);
-      await txn.wait();
-      setLoading(false);
-      await fetchAllProposals();
-      setOpen(false);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  
 
   const executeProposal = async (proposalId) => {
     try {
@@ -151,9 +98,8 @@ export default function WeeklyCreators() {
 
   useEffect(() => {
     loadWallet();
-    fetchAllProposals();
-    getDAOTreasuryBalance();
-    getUserNFTBalance();
+    // fetchAllProposals();
+  
   }, []);
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -195,24 +141,24 @@ export default function WeeklyCreators() {
                         as="h3"
                         className="text-lg leading-6 font-medium text-gray-900"
                       >
-                        Submit a proposal
+                        Create a suscription
                       </Dialog.Title>
                       <div>
                         <label
                           htmlFor="address"
                           className="block text-sm font-medium text-gray-700"
                         >
-                          Creator address
+                          Suscription cost in ETH
                         </label>
                         <div className="mt-1 rounded-md shadow-sm flex">
                           <input
-                            type="text"
-                            name="address"
-                            id="address"
+                            type="number"
+                            name="cost"
+                            id="cost"
                             autoComplete="address"
                             className="focus:ring-sky-500 focus:border-sky-500 flex-grow block w-full min-w-0 rounded-none rounded-r-md sm:text-sm border-gray-300"
-                            value={proposalAddress}
-                            onChange={(e) => setProposalAddress(e.target.value)}
+                            value={cost}
+                            onChange={(e) => setCost(e.target.value)}
                           />
                         </div>
                       </div>
@@ -224,7 +170,7 @@ export default function WeeklyCreators() {
                       className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:col-start-2 sm:text-sm"
                       onClick={() => createProposal()}
                     >
-                      Submit proposal
+                      Create suscription
                     </button>
                     <button
                       type="button"
@@ -242,39 +188,12 @@ export default function WeeklyCreators() {
         </Dialog>
       </Transition.Root>
       <div className="px-4 sm:px-6 lg:px-8">
-        <div>
-          <dl className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-            <div className="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
-              <dt className="text-sm font-medium text-gray-500 truncate">
-                Proposals
-              </dt>
-              <dd className="mt-1 text-3xl tracking-tight font-semibold text-gray-900">
-                {numProposals}
-              </dd>
-            </div>
-            <div className="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
-              <dt className="text-sm font-medium text-gray-500 truncate">
-                Treasury balance
-              </dt>
-              <dd className="mt-1 text-3xl tracking-tight font-semibold text-gray-900">
-                {treasuryBalance}
-              </dd>
-            </div>
-            <div className="px-4 py-5 bg-white shadow rounded-lg overflow-hidden sm:p-6">
-              <dt className="text-sm font-medium text-gray-500 truncate">
-                NFT I hold
-              </dt>
-              <dd className="mt-1 text-3xl tracking-tight font-semibold text-gray-900">
-                {nftBalance}
-              </dd>
-            </div>
-          </dl>
-        </div>
+       
         <div className="sm:flex sm:items-center">
           <div className="sm:flex-auto">
-            <h1 className="text-xl font-semibold text-gray-900">Proposals</h1>
+            <h1 className="text-xl font-semibold text-gray-900">Suscriptions</h1>
             <p className="mt-2 text-sm text-gray-700">
-              A list of all the proposals in the DAO.
+              A list of all suscriptions on the platform.
             </p>
           </div>
           <button
@@ -282,7 +201,7 @@ export default function WeeklyCreators() {
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             onClick={() => setOpen(true)}
           >
-            Submit a proposal
+            Create a suscription
           </button>
         </div>
         <div className="mt-8 flex flex-col">
@@ -302,32 +221,27 @@ export default function WeeklyCreators() {
                         scope="col"
                         className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
-                        Up votes
+                        # of suscribers
                       </th>
                       <th
                         scope="col"
                         className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
-                        Down votes
+                       Cost
                       </th>
+                      
                       <th
                         scope="col"
                         className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
                       >
-                        Active till
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-                      >
-                        Execute
+                        View
                       </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {proposals &&
-                      proposals.map((proposal) => (
-                        <tr key={proposal.proposalId}>
+                    {suscriptions &&
+                      suscriptions.map((suscription) => (
+                        <tr key={suscription.proposalId}>
                           <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                             {proposal.candidate}
                           </td>

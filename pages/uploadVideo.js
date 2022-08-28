@@ -1,9 +1,14 @@
 import Header from "../components/Header";
 import { useState, useEffect } from "react";
+import { Switch } from "@headlessui/react";
 
 import { uploadFileToIPFS, uploadJSONToIPFS } from "../utils/pinata";
 import { ethers } from "ethers";
 import DVideos from "../utils/DVideos.json";
+
+function classNames(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
 
 export default function UploadVideo() {
   const [title, setTitle] = useState();
@@ -12,6 +17,7 @@ export default function UploadVideo() {
   const [fileURL, setFileURL] = useState();
   const [message, setMessage] = useState("");
   const [signer, setSigner] = useState();
+  const [enabled, setEnabled] = useState(false);
 
   const uploadVideo = async (e) => {
     let file = e.target.files[0];
@@ -37,7 +43,7 @@ export default function UploadVideo() {
     const nftJSON = {
       name: title,
       description,
-      price: 0.01,
+      price: 0.001,
       image: fileURL,
     };
     console.log(nftJSON);
@@ -65,11 +71,11 @@ export default function UploadVideo() {
       setMessage("Please wait.. uploading (upto 5 mins)");
       let contract = new ethers.Contract(DVideos.address, DVideos.abi, signer);
       // console.log(price);
-      const price = ethers.utils.parseUnits("0.1", "ether");
+      const price = ethers.utils.parseUnits("0.001", "ether");
       // let listingPrice = await contract.getListPrice();
       // listingPrice = listingPrice.toString();
 
-      let transaction = await contract.createToken(metadataURL, price, {
+      let transaction = await contract.createToken(metadataURL, price,enabled,  {
         value: price,
       });
       await transaction.wait();
@@ -92,7 +98,6 @@ export default function UploadVideo() {
 
   useEffect(() => {
     loadWallet();
-
   }, []);
   return (
     <div>
@@ -150,26 +155,6 @@ export default function UploadVideo() {
             </div>
           </div>
 
-          {/* <div>
-            <label
-              htmlFor="project-name"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Video Price (if not intested in selling put 999 ETH)
-            </label>
-            <div className="mt-1">
-              <textarea
-                type="number"
-                name="price"
-                className="block w-full shadow-sm focus:ring-sky-500 focus:border-sky-500 sm:text-sm border-gray-300 rounded-md"
-                step="0.01"
-                required
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-              />
-            </div>
-          </div> */}
-
           <div>
             <label
               htmlFor="description"
@@ -187,7 +172,35 @@ export default function UploadVideo() {
             </div>
           </div>
 
-          <div className="flex justify-end">
+          <div>
+          <label
+              htmlFor="description"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Is video for suscribers only
+            </label>
+            <div className="mt-1">
+              <Switch
+                checked={enabled}
+                onChange={setEnabled}
+                className={classNames(
+                  enabled ? "bg-indigo-600" : "bg-gray-200",
+                  "relative inline-flex flex-shrink-0 h-6 w-11 border-2 border-transparent rounded-full cursor-pointer transition-colors ease-in-out duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                )}
+              >
+                {/* <span className="sr-only">Use setting</span> */}
+                <span
+                  aria-hidden="true"
+                  className={classNames(
+                    enabled ? "translate-x-5" : "translate-x-0",
+                    "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition ease-in-out duration-200"
+                  )}
+                />
+              </Switch>
+            </div>
+          </div>
+
+          <div className="w-full ">
             <button
               type="submit"
               className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-500 hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"

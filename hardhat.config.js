@@ -14,8 +14,16 @@ module.exports = {
     rinkeby: {
       url: "https://eth-rinkeby.alchemyapi.io/v2/EhCczk92CtFVxUeyzDMZtkGGf-oQ4EH9",
       accounts: [
-        "8a5a05cba138e0974b172b62f985225fcfe865319806039821f67786e180e511",
+        "private key",
       ],
+    },
+    waterfall: {
+      url: "https://rpc.waterfall.network/rpc",
+      chainId: 333777333,
+      accounts: ["private key"],
+      from: '0xBcA2E96B6DAC862aC1a3984445f6fcdAADB51C25',
+      gasPrice: 20000000000,
+      gas: 3000000,
     },
   },
   solidity: {

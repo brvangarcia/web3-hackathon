@@ -35,6 +35,9 @@ export default function Header() {
           </div>
          
           <Link href="/weeklyCreators">Weekly creator</Link>
+          <div className="px-5">
+          <Link href="/suscriptions">  Suscriptions</Link>
+          </div>
         </nav>
         {/* <button className="inline-flex items-center bg-gray-100 border-0 py-1 px-3 focus:outline-none hover:bg-gray-200 rounded text-base mt-4 md:mt-0">
           Button
